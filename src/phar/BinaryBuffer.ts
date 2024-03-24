@@ -40,7 +40,7 @@ export default class BinaryBuffer {
       length = Math.max(0, this.buffer.length - this.offset)
     }
 
-    if (length == 0) {
+    if (length === 0) {
       return ''
     }
 

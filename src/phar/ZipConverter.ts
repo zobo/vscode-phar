@@ -54,11 +54,12 @@ export async function toPhar(
     const files: JSZip.JSZipObject[] = []
     zip.forEach((path: string, file: JSZip.JSZipObject) => files.push(file))
 
-    for (const file of files)
+    for (const file of files) {
       phar.addFile(new File(file.name, fromUint8Array(await file.async<'uint8array'>('uint8array')), {
         compressionType,
         timestamp: file.date.getDate(),
       }))
+    }
   } catch (error) {
     throw Error(`JSZip decompression error: ${error}`)
   }

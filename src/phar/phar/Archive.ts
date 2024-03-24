@@ -124,7 +124,7 @@ export default class Archive {
    */
   setStub(stub: string): this {
     var pos = stub.toLowerCase().indexOf('__halt_compiler();');
-    if (pos == -1) {
+    if (pos === -1) {
       throw Error('Stub is invalid!');
     }
 
@@ -162,7 +162,7 @@ export default class Archive {
    * @param {number} type
    */
   setSignatureType(type: Signature): this {
-    if (type != Signature.MD5 && type != Signature.SHA1 && type != Signature.SHA256 && type != Signature.SHA512) {
+    if (type !== Signature.MD5 && type !== Signature.SHA1 && type !== Signature.SHA256 && type !== Signature.SHA512) {
       throw Error('Unknown signature type given!');
     }
 
@@ -204,7 +204,7 @@ export default class Archive {
    * @returns {File?}
    */
   getFile(name: string): File | undefined {
-    return this.files.find((file: File) => file.getName() == name)
+    return this.files.find((file: File) => file.getName() === name)
   }
 
   /**
@@ -212,7 +212,7 @@ export default class Archive {
    * @param {string} name
    */
   removeFile(name: string): this {
-    this.files = this.files.filter((file) => file.getName() != name)
+    this.files = this.files.filter((file) => file.getName() !== name)
     return this;
   }
 
@@ -286,7 +286,7 @@ export default class Archive {
     }
 
     let pos = buffer.length - 4;
-    if (buffer.substring(pos) != PharConst.END_MAGIC) {
+    if (buffer.substring(pos) !== PharConst.END_MAGIC) {
       throw new Error('Phar is corrupted! (magic corrupt)');
     }
     pos -= 4;
@@ -330,17 +330,17 @@ export default class Archive {
 
     const hash = buffer.substring(pos - hashLength, pos);
     buffer = buffer.substring(0, pos - hashLength);
-    if (hasher.raw(buffer) != hash) {
+    if (hasher.raw(buffer) !== hash) {
       throw Error('Phar has a broken signature!');
     }
 
     var stubEnd = PharConst.STUB_END;
     var stubLength = buffer.indexOf(stubEnd);
-    if (stubLength == -1) {
+    if (stubLength === -1) {
       stubEnd = PharConst.STUB_END_ALT;
     }
     stubLength = buffer.indexOf(stubEnd);
-    if (stubLength == -1) {
+    if (stubLength === -1) {
       throw Error('Stub not found!');
     }
     stubLength += stubEnd.length;
@@ -372,7 +372,7 @@ export default class Archive {
       options.isCompressed = true;
 
       const file = new File(filename, binaryBuffer.get(size), options);
-      if (readedCrc32 != crc32(file.getContents())) {
+      if (readedCrc32 !== crc32(file.getContents())) {
         throw Error('Phar is corrupted! (file corrupt)');
       }
 

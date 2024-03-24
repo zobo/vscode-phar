@@ -207,7 +207,7 @@ export default class File {
    * @param {number} type
    */
   setCompressionType(type: number): this {
-    if (Const.SUPPORTED_COMPRESSION.indexOf(type) == -1) {
+    if (Const.SUPPORTED_COMPRESSION.indexOf(type) === -1) {
       throw Error('(' + type + ') compression type is not supported!');
     }
 

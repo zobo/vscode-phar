@@ -17,9 +17,9 @@ export function deactivate() {
 function pharSplitUri(uri: vscode.Uri) : [vscode.Uri, string] {
 	const parts = uri.toString().split('/')
 	const i = parts.findIndex((v) => v.match(/\.phar$/))
-	if (i == -1) {
+	if (i === -1) {
 		// cant parse
-		throw "Cannot parse URI"
+		throw new Error("Cannot parse URI")
 	}
 	const pharFile = parts.slice(0, i+1).join('/')
 	const packedFile = parts.slice(i+1).join('/') // force /?
