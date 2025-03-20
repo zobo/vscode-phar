@@ -10,9 +10,44 @@
     "Other"
   ],
   "activationEvents": [
-    "onFileSystem:phar"
+    "onFileSystem:phar",
+    "onLanguage:phar",
+    "workspaceContains:**/*.phar"
   ],
   "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-phar.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "vscode-phar.helloWorld2",
+        "title": "Hello World2"
+      },
+      {
+        "command": "vscode-phar.open-phar",
+        "title": "PHAR: Open Phar URL"
+      }
+    ],
+    "languages": [
+      {
+        "id": "phar",
+        "aliases": ["PHAR", "phar"],
+        "extensions": [
+          ".phar"
+        ]
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "vscode-phar.open-phar",
+          "when": "resourceExtname  == .phar"
+        }
+      ]
+    }
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
