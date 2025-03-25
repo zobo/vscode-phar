@@ -2,24 +2,24 @@
  * @param {string} string
  */
 export function crc32(string: string) {
-  const crcTable = (() => {
-    var c;
-    var crcTable = [];
-    for (var n = 0; n < 256; n++) {
-      c = n;
-      for (var k = 0; k < 8; k++) {
-        c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
-      }
-      crcTable[n] = c;
-    }
-    return crcTable;
-  })()
+    const crcTable = (() => {
+        var c
+        var crcTable = []
+        for (var n = 0; n < 256; n++) {
+            c = n
+            for (var k = 0; k < 8; k++) {
+                c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+            }
+            crcTable[n] = c
+        }
+        return crcTable
+    })()
 
-  var crc = 0 ^ (-1);
-  for (var i = 0; i < string.length; i++) {
-    crc = (crc >>> 8) ^ crcTable[(crc ^ string.charCodeAt(i)) & 0xFF];
-  }
-  return (crc ^ (-1)) >>> 0;
+    var crc = 0 ^ -1
+    for (var i = 0; i < string.length; i++) {
+        crc = (crc >>> 8) ^ crcTable[(crc ^ string.charCodeAt(i)) & 0xff]
+    }
+    return (crc ^ -1) >>> 0
 }
 
 /**
@@ -28,14 +28,14 @@ export function crc32(string: string) {
  * @returns {Uint8Array}
  */
 export function toUint8Array(string: string): Uint8Array {
-  const u8a = new Uint8Array(string.length),
+    const u8a = new Uint8Array(string.length),
         { forEach } = Array.prototype
 
-  forEach.call(string, (value: string, index: number) => {
-    u8a[index] = string.charCodeAt(index);
-  })
+    forEach.call(string, (value: string, index: number) => {
+        u8a[index] = string.charCodeAt(index)
+    })
 
-  return u8a
+    return u8a
 }
 
 /**
@@ -44,11 +44,11 @@ export function toUint8Array(string: string): Uint8Array {
  * @returns {string}
  */
 export function fromUint8Array(u8a: Uint8Array): string {
-  let string = ''
+    let string = ''
 
-  u8a.forEach((value, index) => {
-    string += String.fromCharCode(u8a[index])
-  })
+    u8a.forEach((value, index) => {
+        string += String.fromCharCode(u8a[index])
+    })
 
-  return string
+    return string
 }

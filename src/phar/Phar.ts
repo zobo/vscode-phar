@@ -7,15 +7,15 @@ import File, { FileOptions } from './phar/File'
 import * as ZipConverter from './ZipConverter'
 
 export {
-  Binary,
-  BinaryBuffer,
-  Utils,
-  Const,
-  Archive,
-  ArhiveOptions,
-  File,
-  FileOptions,
-  ZipConverter,
-  Signature,
-  Compression
+    Binary,
+    BinaryBuffer,
+    Utils,
+    Const,
+    Archive,
+    ArhiveOptions,
+    File,
+    FileOptions,
+    ZipConverter,
+    Signature,
+    Compression,
 }
