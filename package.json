@@ -38,7 +38,10 @@
     "languages": [
       {
         "id": "phar",
-        "aliases": ["PHAR", "phar"],
+        "aliases": [
+          "PHAR",
+          "phar"
+        ],
         "extensions": [
           ".phar"
         ]
@@ -59,6 +62,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
+    "prettier": "prettier \"**/{*.json,*.yml,.*.yml,*.ts,.prettierrc,*.md}\" --write --list-different",
+    "prettier-check": "npm run prettier -- --write=false",
     "test": "vscode-test"
   },
   "devDependencies": {
@@ -70,6 +75,8 @@
     "@vscode/test-cli": "^0.0.6",
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.56.0",
+    "eslint-config-prettier": "^10.1.1",
+    "prettier": "^3.5.3",
     "typescript": "^5.3.3"
   },
   "dependencies": {
@@ -77,6 +84,6 @@
     "@types/pako": "^1.0.0",
     "jshashes": "^1.0.7",
     "jszip": "^3.1.5",
-    "pako": "^1.0.7"    
+    "pako": "^1.0.7"
   }
 }
