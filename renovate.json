@@ -1,0 +1,26 @@
+{
+  "extends": ["config:recommended"],
+  "timezone": "Europe/Berlin",
+  "rangeStrategy": "bump",
+  "semanticCommits": "enabled",
+  "dependencyDashboard": true,
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "matchPackageNames": ["node"],
+      "extractVersion": "^v(?<version>.*)$",
+      "commitMessageTopic": "Node.js",
+      "major": {
+        "enabled": true
+      }
+    },
+    {
+      "groupName": "vscode-phar",
+      "matchPackageNames": ["/^vscode-phar/"]
+    },
+    {
+      "matchPackageNames": ["vscode"],
+      "allowedVersions": "!/^1\\.999\\.0$/"
+    }
+  ]
+}

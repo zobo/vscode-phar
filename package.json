@@ -1,13 +1,18 @@
 {
   "name": "vscode-phar",
   "displayName": "vscode-phar",
+  "publisher": "zobo",
   "description": "PHP PHAR support for Visual Studio Code",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.87.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
+  ],
+  "keywords": [
+    "php",
+    "phar"
   ],
   "activationEvents": [
     "onFileSystem:phar",
