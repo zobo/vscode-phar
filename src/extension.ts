@@ -3,36 +3,6 @@ import * as phar from './phar/Phar'
 import path from 'path'
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('vscode-phar.helloWorld', async () => {
-        // let uri = vscode.Uri.parse('phar:///C:/local_disk/zobo/Projects/vscode-php-debug/vscode-phar/temp/test.phar/test2.php');
-        //let uri = vscode.Uri.parse('phar:///C:/local_disk/zobo/Projects/vscode-php-debug/vscode-phar/temp/phpactor.phar/lib/Indexer/Model/Query/FunctionQuery.php');
-
-        let url = await vscode.window.showInputBox({
-            title: 'Open PHAR URL',
-            prompt: 'Enter PHAR URL with file',
-        })
-        if (!url) {
-            return
-        }
-        let uri = vscode.Uri.parse(url)
-        let doc = await vscode.workspace.openTextDocument(uri) // calls back into the provider
-        await vscode.window.showTextDocument(doc, { preview: false })
-    })
-
-    context.subscriptions.push(disposable)
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand('vscode-phar.helloWorld2', () => {
-            // vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse('phar:///C:/local_disk/zobo/Projects/vscode-php-debug/vscode-phar/temp/test.phar'), name: "PHAR TEST" });
-            // vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse('phar:///C:/local_disk/zobo/Projects/vscode-php-debug/vscode-phar/temp/phpactor.phar'), name: "phpactor.phar" });
-            vscode.workspace.updateWorkspaceFolders(0, 0, {
-                uri: vscode.Uri.parse(
-                    'phar:///C:/local_disk/zobo/Projects/vscode-php-debug/vscode-phpactor/phpactor.phar'
-                ),
-                name: 'phpactor.phar',
-            })
-        })
-    )
 
     context.subscriptions.push(
         vscode.workspace.registerTextDocumentContentProvider('phar', new PharProvider()),
@@ -56,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
                 uri = vscode.Uri.parse(url)
             }
             const [basePharUri, internalPath] = pharSplitUri(uri)
-            if (internalPath == '') {
+            if (internalPath === '') {
                 vscode.workspace.updateWorkspaceFolders(0, 0, {
                     uri: uri.with({ scheme: 'phar' }),
                     name: path.basename(uri.path),
@@ -70,8 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(document => {
-            if (document.languageId == 'phar') {
-                // console.log('Maybe open the file in folder?')
+            if (document.languageId === 'phar') {
                 vscode.commands.executeCommand('workbench.action.closeActiveEditor')
                 vscode.workspace.updateWorkspaceFolders(0, 0, {
                     uri: document.uri.with({ scheme: 'phar' }),
@@ -94,7 +63,6 @@ class PharFsProvider implements vscode.FileSystemProvider {
 
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event
 
-    // private pharMap: Map<string, phar.Archive> = new Map<string, phar.Archive>()
     private pharMap: Map<string, Promise<phar.Archive>> = new Map<string, Promise<phar.Archive>>()
     private dirMap: Map<string, Map<string, FEntry[]>> = new Map<string, Map<string, FEntry[]>>()
 
@@ -132,7 +100,7 @@ class PharFsProvider implements vscode.FileSystemProvider {
                 const d = parts.join('/')
 
                 let fe = ret.get(d) || []
-                if (!fe.find(f => f.name == n)) {
+                if (!fe.find(f => f.name === n)) {
                     fe.push({ name: n, directory: !isFile })
                 }
                 isFile = false
@@ -156,9 +124,9 @@ class PharFsProvider implements vscode.FileSystemProvider {
     ): vscode.Disposable {
         throw new Error('Method watch not implemented.')
     }
+
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
         const [pa, fp] = await this._readPhar(uri)
-        console.log(`stat ${fp}`)
 
         const dirs = this._getDirs(uri)
 
@@ -195,11 +163,6 @@ class PharFsProvider implements vscode.FileSystemProvider {
         return d
     }
 
-    _uniq(a: string[]): string[] {
-        let s: any = {}
-        return a.filter(i => (s.hasOwnProperty(i) ? false : (s[i] = true)))
-    }
-
     createDirectory(uri: vscode.Uri): void | Thenable<void> {
         throw new Error('Method createDir not implemented.')
     }
@@ -208,7 +171,6 @@ class PharFsProvider implements vscode.FileSystemProvider {
         const pf = pa.getFile(fp)
         if (!pf) {
             throw vscode.FileSystemError.FileNotFound(uri)
-            // throw new Error("File not found in PHAR")
         }
         return Buffer.from(pf.getContents())
     }
@@ -230,16 +192,15 @@ class PharFsProvider implements vscode.FileSystemProvider {
 function pharSplitUri(uri: vscode.Uri): [vscode.Uri, string] {
     const parts = uri.toString().split('/')
     const i = parts.findIndex(v => v.match(/\.phar$/))
-    if (i == -1) {
-        // cant parse
-        throw 'Cannot parse URI'
+    if (i === -1) {
+        // can't parse
+        throw new Error('Cannot parse URI')
     }
     let pharFile = parts.slice(0, i + 1).join('/')
     const packedFile = parts.slice(i + 1).join('/') // force /?
 
     // php on windows and wrong number of slashes
     if (pharFile.match(/^[pP][hH][aA][rR]:\/\/[a-zA-Z]:\//)) {
-        // pharFile = pharFile.substring(0, 7) + '/' + pharFile.substring(7,8).toUpperCase() +  pharFile.substring(8)
         pharFile = pharFile.substring(0, 7) + '/' + pharFile.substring(7)
     }
 

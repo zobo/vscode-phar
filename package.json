@@ -18,6 +18,14 @@
     "name": "Damjan Cvetko",
     "email": "damjan.cvetko@gmail.com"
   },
+  "sponsor": {
+    "url": "https://github.com/sponsors/zobo"
+  },
+  "icon": "images/logo.png",
+  "galleryBanner": {
+    "color": "#6682BA",
+    "theme": "dark"
+  }, 
   "activationEvents": [
     "onFileSystem:phar",
     "onLanguage:phar",
@@ -26,14 +34,6 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "vscode-phar.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "vscode-phar.helloWorld2",
-        "title": "Hello World2"
-      },
       {
         "command": "vscode-phar.open-phar",
         "title": "PHAR: Open Phar URL"
