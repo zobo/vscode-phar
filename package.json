@@ -26,6 +26,13 @@
     "color": "#6682BA",
     "theme": "dark"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zobo/vscode-phar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zobo/vscode-phar/issues"
+  },
   "activationEvents": [
     "onFileSystem:phar",
     "onLanguage:phar",
