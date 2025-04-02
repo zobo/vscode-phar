@@ -1,0 +1,38 @@
+on:
+  release:
+    types:
+      - created
+
+name: Upload the extension
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'v20.18.0'
+      - run: npm ci
+      - run: npm run compile
+      - run: mkdir artifacts
+      - name: Package
+        run: npx vsce package --no-git-tag-version --no-update-package-json --out=artifacts/vscode-phar.vsix ${{ github.event.release.tag_name }}
+      - name: 'Release Extension'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./artifacts/vscode-phar.vsix
+          asset_name: vscode-phar.vsix
+          asset_content_type: application/octet-stream
+      - name: Publish to Visual Studio Marketplace
+        run: npx vsce publish --packagePath ./artifacts/vscode-phar.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: Publish to Open VSX Registry
+        run: npx ovsx publish --packagePath ./artifacts/vscode-phar.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
