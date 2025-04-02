@@ -3,7 +3,6 @@ import * as phar from './phar/Phar'
 import path from 'path'
 
 export function activate(context: vscode.ExtensionContext) {
-
     context.subscriptions.push(
         vscode.workspace.registerTextDocumentContentProvider('phar', new PharProvider()),
 
