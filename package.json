@@ -1,8 +1,8 @@
 {
   "name": "vscode-phar",
-  "displayName": "vscode-phar",
+  "displayName": "PHP Phar Explorer",
   "publisher": "zobo",
-  "description": "PHP PHAR support for Visual Studio Code",
+  "description": "PHP Phar support for Visual Studio Code",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.87.0"
@@ -34,16 +34,23 @@
     "url": "https://github.com/zobo/vscode-phar/issues"
   },
   "activationEvents": [
-    "onFileSystem:phar",
-    "onLanguage:phar",
-    "workspaceContains:**/*.phar"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-phar.open-phar",
-        "title": "PHAR: Open Phar URL"
+        "command": "vscode-phar.explorer-open-phar",
+        "title": "Phar: Explore Phar file"
+      },
+      {
+        "command": "vscode-phar.explorer-close-phar",
+        "title": "Phar: Close Phar file",
+        "icon": "$(close)"
+      },
+      {
+        "command": "vscode-phar.explorer-close-phar-all",
+        "title": "Phar: Close all Phar files",
+        "icon": "$(close-all)"
       }
     ],
     "languages": [
@@ -58,11 +65,33 @@
         ]
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "pharExplorer",
+          "name": "Phar Explorer"
+        }
+      ]
+    },
     "menus": {
       "explorer/context": [
         {
-          "command": "vscode-phar.open-phar",
-          "when": "resourceExtname  == .phar"
+          "command": "vscode-phar.explorer-open-phar",
+          "when": "resourceExtname == .phar"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vscode-phar.explorer-close-phar",
+          "when": "view == pharExplorer && viewItem == pharFilepharExplorerTreeItemRoor",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vscode-phar.explorer-close-phar-all",
+          "when": "view == pharExplorer",
+          "group": "navigation"
         }
       ]
     }

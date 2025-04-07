@@ -1,19 +1,14 @@
 import * as vscode from 'vscode'
 import * as phar from './phar/Phar'
-import path from 'path'
+import path, { basename } from 'path'
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
-        vscode.workspace.registerTextDocumentContentProvider('phar', new PharProvider()),
-
-        vscode.workspace.registerFileSystemProvider('phar', new PharFsProvider(), {
-            isCaseSensitive: true,
-            isReadonly: true,
-        })
-    )
+    const pharExplorerProvider = new PharExplorerProvider()
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('vscode-phar.open-phar', async (uri: vscode.Uri | undefined) => {
+        vscode.window.registerTreeDataProvider('pharExplorer', pharExplorerProvider),
+        vscode.workspace.registerTextDocumentContentProvider('phar', pharExplorerProvider),
+        vscode.commands.registerCommand('vscode-phar.explorer-open-phar', async (uri: vscode.Uri | undefined) => {
             if (!uri) {
                 let url = await vscode.window.showInputBox({
                     title: 'Open PHAR URL',
@@ -26,26 +21,18 @@ export function activate(context: vscode.ExtensionContext) {
             }
             const [basePharUri, internalPath] = pharSplitUri(uri)
             if (internalPath === '') {
-                vscode.workspace.updateWorkspaceFolders(0, 0, {
-                    uri: uri.with({ scheme: 'phar' }),
-                    name: path.basename(uri.path),
-                })
+                const pharUri = uri.with({ scheme: 'phar' })
+                pharExplorerProvider.openPhar(pharUri)
             } else {
                 let doc = await vscode.workspace.openTextDocument(uri) // calls back into the provider
                 await vscode.window.showTextDocument(doc, { preview: false })
             }
-        })
-    )
-
-    context.subscriptions.push(
-        vscode.workspace.onDidOpenTextDocument(document => {
-            if (document.languageId === 'phar') {
-                vscode.commands.executeCommand('workbench.action.closeActiveEditor')
-                vscode.workspace.updateWorkspaceFolders(0, 0, {
-                    uri: document.uri.with({ scheme: 'phar' }),
-                    name: path.basename(document.uri.path),
-                })
-            }
+        }),
+        vscode.commands.registerCommand('vscode-phar.explorer-close-phar', async (item: PharTreeItem) => {
+            pharExplorerProvider.closePhar(item.resourceUri!)
+        }),
+        vscode.commands.registerCommand('vscode-phar.explorer-close-phar-all', async (item: PharTreeItem) => {
+            pharExplorerProvider.closePhar(undefined)
         })
     )
 }
@@ -86,6 +73,18 @@ class PharFsProvider implements vscode.FileSystemProvider {
             this.pharMap.set(basePharUri.toString(), pa)
         }
         return [await pa, internalPath]
+    }
+
+    close(uri: vscode.Uri): boolean {
+        const [basePharUri, internalPath] = pharSplitUri(uri)
+
+        if (this.pharMap.has(basePharUri.toString())) {
+            this.pharMap.delete(basePharUri.toString())
+            this.dirMap.delete(basePharUri.toString())
+            return true
+        }
+
+        return false
     }
 
     _buildTree(pa: phar.Archive): Map<string, FEntry[]> {
@@ -207,21 +206,136 @@ function pharSplitUri(uri: vscode.Uri): [vscode.Uri, string] {
     return [fix, packedFile]
 }
 
-class PharProvider implements vscode.TextDocumentContentProvider {
+class PharExplorerProvider implements vscode.TreeDataProvider<PharTreeItem>, vscode.TextDocumentContentProvider {
+    private _onDidChangeTreeData: vscode.EventEmitter<void | PharTreeItem | PharTreeItem[] | null | undefined> =
+        new vscode.EventEmitter<void | PharTreeItem | PharTreeItem[] | null | undefined>()
+    readonly onDidChangeTreeData: vscode.Event<void | PharTreeItem | PharTreeItem[] | null | undefined> =
+        this._onDidChangeTreeData.event
+
+    private fsProvider = new PharFsProvider()
+
+    // root is a list of open phars
+    private phars: Map<string, PharTreeItem> = new Map<string, PharTreeItem>()
+
+    public async openPhar(uri: vscode.Uri): Promise<void> {
+        const [basePharUri, internalPath] = pharSplitUri(uri)
+        const k = basePharUri.toString()
+
+        if (!this.phars.has(k)) {
+            const pharUri = basePharUri.with({ scheme: 'phar' })
+            const til = PharTreeItem.loading(pharUri)
+            this._onDidChangeTreeData.fire(undefined)
+            this.phars.set(k, til)
+            const s = await this.fsProvider.stat(uri)
+            const ti = PharTreeItem.root(pharUri, this.fsProvider)
+            this.phars.set(k, ti)
+            this._onDidChangeTreeData.fire(undefined)
+        }
+    }
+
+    public closePhar(uri?: vscode.Uri): void {
+        if (!uri) {
+            this.phars.forEach(p => this.closePhar(p.resourceUri!))
+            return
+        }
+
+        const [basePharUri, internalPath] = pharSplitUri(uri)
+        const k = basePharUri.toString()
+
+        if (this.phars.has(k)) {
+            const ti = this.phars.get(k)
+            this.phars.delete(k)
+            this.fsProvider.close(uri)
+            this._onDidChangeTreeData.fire(undefined)
+        }
+    }
+
+    getTreeItem(element: PharTreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
+        return element
+    }
+
+    async getChildren(element?: PharTreeItem | undefined): Promise<PharTreeItem[]> {
+        if (!element) {
+            // return list of open phars
+            return Array.from(this.phars.values())
+        }
+
+        const fs = element.fsProvider!
+        const fes = await fs.readDirectory(element.resourceUri!)
+
+        const its = fes.map(([name, ft]) => {
+            return PharTreeItem.pharEntry(element.resourceUri!, name, ft, fs)
+        })
+
+        return its
+    }
+
+    /*
+    resolveTreeItem?(item: vscode.TreeItem, element: PharTreeItem, token: vscode.CancellationToken): vscode.ProviderResult<vscode.TreeItem> {
+        throw new Error('Method not implemented.')
+    }
+    */
+
     public async provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> {
         const [fix, packedFile] = pharSplitUri(uri)
 
-        const pharContents = await vscode.workspace.fs.readFile(fix)
-
-        const pa = new phar.Archive()
-        pa.loadPharData(pharContents)
-
-        const pf = pa.getFile(packedFile)
-
-        if (!pf) {
-            throw new Error('File not found in PHAR')
+        // find the right FS
+        const k = fix.toString()
+        if (!this.phars.has(k)) {
+            await this.openPhar(uri)
         }
+        if (this.phars.has(k)) {
+            const fs = this.phars.get(k)!.fsProvider!
+            return (await fs.readFile(uri)).toString()
+        }
+        throw new Error('Phar file not found')
+    }
+}
 
-        return pf.getContents()
+class PharTreeItem extends vscode.TreeItem {
+    public root: boolean = true
+    public fsProvider?: PharFsProvider
+
+    public static root(pharUri: vscode.Uri, fsProvider: PharFsProvider): PharTreeItem {
+        return {
+            root: true,
+            tooltip: pharUri.toString(),
+            label: basename(pharUri.path),
+            fsProvider: fsProvider,
+            resourceUri: pharUri,
+            collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+            contextValue: 'pharFilepharExplorerTreeItemRoor',
+        }
+    }
+
+    public static loading(pharUri: vscode.Uri): PharTreeItem {
+        return {
+            root: true,
+            tooltip: pharUri.toString(),
+            label: basename(pharUri.path) + ' ...',
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+        }
+    }
+
+    public static pharEntry(
+        parent: vscode.Uri,
+        name: string,
+        ft: vscode.FileType,
+        fsProvider: PharFsProvider
+    ): PharTreeItem {
+        const resourceUri = parent.with({ path: parent.path + '/' + name })
+        return {
+            root: false,
+            fsProvider: fsProvider,
+            resourceUri: resourceUri,
+            collapsibleState:
+                ft === vscode.FileType.Directory
+                    ? vscode.TreeItemCollapsibleState.Collapsed
+                    : vscode.TreeItemCollapsibleState.None,
+            command:
+                ft !== vscode.FileType.Directory
+                    ? { title: 'Open file...', command: 'vscode.open', arguments: [resourceUri] }
+                    : undefined,
+        }
     }
 }
