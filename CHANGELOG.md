@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.1] - 2025-04-20
+
+- Improve docs
+
 ## [1.1.0] - 2025-04-08
 
 - Use TreeView to show Phar contents
