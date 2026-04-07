@@ -122,7 +122,7 @@
   },
   "dependencies": {
     "@types/pako": "^1.0.0",
-    "jshashes": "^1.0.7",
+    "jshashes": "^1.0.8",
     "jszip": "^3.1.5",
     "pako": "^1.0.7"
   }
