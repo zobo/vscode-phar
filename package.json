@@ -116,7 +116,7 @@
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^10.1.1",
-    "ovsx": "^0.10.1",
+    "ovsx": "^0.10.12",
     "prettier": "^3.5.3",
     "typescript": "^5.3.3"
   },
